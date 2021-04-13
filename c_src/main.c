@@ -47,8 +47,8 @@ typedef struct {
 #define   MSG_OUT_PUTS              0x02
 
 //---------------------------------------------------------
-// setup the video core
-void init_video_core( egl_data_t* p_data, int debug_mode, int layer, int global_opacity ) {
+// setup the video core 
+void init_video_core( egl_data_t* p_data, int debug_mode, int width, int height, int pos_x, int pos_y, int layer, int global_opacity ) {
   int screen_width, screen_height;
 
   // initialize the bcm_host from broadcom
@@ -138,20 +138,20 @@ void init_video_core( egl_data_t* p_data, int debug_mode, int layer, int global_
   VC_RECT_T dst_rect;
   VC_RECT_T src_rect;
 
-  dst_rect.x = 0;
-  dst_rect.y = 0;
+  dst_rect.x = pos_x;
+  dst_rect.y = pos_y;
   if ( debug_mode ) {
-    dst_rect.width = screen_width / 2;
-    dst_rect.height = screen_height / 2;
+    dst_rect.width = width / 2;
+    dst_rect.height = height / 2;
   } else {
-    dst_rect.width = screen_width;
-    dst_rect.height = screen_height;
+    dst_rect.width = width;
+    dst_rect.height = height;
   }
 
   src_rect.x = 0;
   src_rect.y = 0;
-  src_rect.width = screen_width << 16;
-  src_rect.height = screen_height << 16;
+  src_rect.width = width << 16;
+  src_rect.height = height << 16;
 
   // start the display manager
   DISPMANX_DISPLAY_HANDLE_T dispman_display = vc_dispmanx_display_open(0 /* LCD */);
@@ -177,8 +177,8 @@ void init_video_core( egl_data_t* p_data, int debug_mode, int layer, int global_
 
   // create the native window surface
   nativewindow.element = dispman_element;
-  nativewindow.width = screen_width;
-  nativewindow.height = screen_height;
+  nativewindow.width = width;
+  nativewindow.height = height;
   EGLSurface surface = eglCreateWindowSurface(display, config, &nativewindow, NULL);
   if (surface == EGL_NO_SURFACE) {
     send_puts("RPI driver error: Unable create the native window surface");
@@ -300,18 +300,22 @@ int main(int argc, char **argv) {
   test_endian();
 
   // super simple arg check
-  if ( argc != 5 ) {
+  if ( argc != 9 ) {
     send_puts("Argument check failed!");
     printf("\r\nscenic_driver_nerves_rpi should be launched via the Scenic.Driver.Nerves.Rpi library.\r\n\r\n");
     return 0;
   }
   int num_scripts = atoi(argv[1]);
   int debug_mode = atoi(argv[2]);
-  int layer = atoi(argv[3]);
-  int global_opacity = atoi(argv[4]);
+  int width = atoi(argv[3]);
+  int height = atoi(argv[4]);
+  int pos_x = atoi(argv[5]);
+  int pos_y = atoi(argv[6]);
+  int layer = atoi(argv[7]);
+  int global_opacity = atoi(argv[8]);
 
   // init graphics
-  init_video_core( &egl_data, debug_mode, layer, global_opacity );
+  init_video_core( &egl_data, debug_mode, width, height, pos_x, pos_y, layer, global_opacity );
 
   // set up the scripts table
   memset(&data, 0, sizeof(driver_data_t));

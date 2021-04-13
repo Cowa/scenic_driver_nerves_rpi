@@ -104,7 +104,7 @@ defmodule Scenic.Driver.Nerves.Rpi do
   # ============================================================================
   # startup
   @doc false
-  def init(viewport, _, config) do
+  def init(viewport, {width, height}, config) do
     # IO.puts "====================================================================="
     # IO.puts "====================================================================="
     # IO.puts "======================== Starting VC4 Driver ========================"
@@ -143,7 +143,18 @@ defmodule Scenic.Driver.Nerves.Rpi do
         true -> @default_global_opacity
       end
 
-    port_args = to_charlist(" #{dl_block_size} #{debug_mode} #{layer} #{global_opacity}")
+    {pos_x, pos_y} =
+      case config[:position] do
+        nil -> {0, 0}
+        pos -> pos
+      end
+
+    port_args =
+      to_charlist(
+        " #{dl_block_size} #{debug_mode} #{width} #{height} #{pos_x} #{pos_y} #{layer} #{
+          global_opacity
+        }"
+      )
 
     # request put and delete notifications from the cache
     Cache.Static.Font.subscribe(:all)
